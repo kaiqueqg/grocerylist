@@ -1,16 +1,10 @@
-using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
-using DocumentFormat.OpenXml.Wordprocessing;
 using GroceryList.Data;
 using GroceryList.Data.Caching;
 using GroceryList.Data.Services;
 using GroceryList.Data.UnitOfWork;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.HostFiltering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using MongoDB.Driver;
 using Serilog;
 using Serilog.Sinks.Elasticsearch;
 using System.Text;

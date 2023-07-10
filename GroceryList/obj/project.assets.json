@@ -6142,11 +6142,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "F:\\2- Projects\\GroceryList\\GroceryList\\GroceryList.csproj",
+      "projectUniqueName": "F:\\2- Projects\\GroceryListApi\\GroceryList\\GroceryList.csproj",
       "projectName": "GroceryList",
-      "projectPath": "F:\\2- Projects\\GroceryList\\GroceryList\\GroceryList.csproj",
+      "projectPath": "F:\\2- Projects\\GroceryListApi\\GroceryList\\GroceryList.csproj",
       "packagesPath": "C:\\Users\\Kay-PC\\.nuget\\packages\\",
-      "outputPath": "F:\\2- Projects\\GroceryList\\GroceryList\\obj\\",
+      "outputPath": "F:\\2- Projects\\GroceryListApi\\GroceryList\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
