@@ -1,0 +1,110 @@
+version: '3'
+services:
+  #sql_server_grocerylist:
+  # image: mcr.microsoft.com/mssql/server
+  # ports: 
+  #  - 1433:1433
+  # environment:
+  #  - ACCEPT_EULA=Y
+  #  - MSSQL_SA_PASSWORD=Passw0rd
+  # volumes:
+  #  - /data/db:/data/db
+
+  #adminer_grocerylist:
+  #  image: adminer
+  #  restart: always
+  #  depends_on:
+  #  - sql_server_grocerylist
+  #  ports:
+  #  - 8080:8080
+
+  #es01:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:7.9.0
+  #   container_name: es01
+  #   environment:
+  #    - bootstrap.memory_lock=true
+  #    - node.name=es01
+  #    - cluster.name=es-docker-cluster
+  #    - cluster.initial_master_nodes=es01
+  #    - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+  #    #- discovery.type=single-node
+  #    #- ELASTIC_PASSWORD=changeme
+  #    #- xpack.security.enabled=true
+  #   ulimits:
+  #      memlock:
+  #         soft:  -1
+  #         hard:  -1
+  #   volumes:
+  #    - data01:/usr/share/elasticsearch/data
+  #   ports: ['9200:9200']
+  #   networks: ['stack']
+
+  #kibana:
+  #  image: docker.elastic.co/kibana/kibana:7.9.0
+  #  ports: ['5601:5601']
+  #  environment:
+  #     ELASTICSEARCH_URL: http://es01:9200
+  #     ELASTICSEARCH_HOSTS: http://es01:9200
+  #  #- ELASTICSEARCH_USERNAME=elastic
+  #  #- ELASTICSEARCH_PASSWORD=changeme
+  #  networks: ['stack']
+  #  links: ['es01']
+  #  depends_on: ['es01']
+
+  mongodb:
+    image: mongo
+    ports: ['27017:27017']
+    volumes: ['mongodb_data:/data/db']
+    environment:
+     - MONGO_INITDB_ROOT_USERNAME=admin
+     - MONGO_INITDB_ROOT_PASSWORD=passw0rd
+    networks: ['mongo-network']
+
+  # compass:
+  #  image: mongo-express
+  #  ports: ['8081:8081']
+  #  environment:
+  #   - MONGOCLIENT_CONNECT=mongodb://admin:passw0rd@mongodb:27017
+  #  networks: ['mongo-network']
+  #  depends_on: ['mongodb']
+
+  redis:
+    image: redis
+    ports: ['6379:6379']
+    networks: ['redis-network']
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    environment:
+     - REDIS_HOSTS=redis
+    ports: ['8081:8081']
+    depends_on: ['redis']
+    networks: ['redis-network']
+
+  # net:
+  #   image: net
+  #   ports:
+  #    - 5000:5000
+  #    - 5001:5001
+  #   environment:
+  #    - ASPNETCORE_URLS=http://+:5000
+  #    - ASPNETCORE_HTTP_PORT=https://+:5001
+  #    - SQL_SERVER_URL=sql_server_grocerylist
+  #   volumes:
+  #    - /myappdata:/app/data
+    #depends_on:
+    # - sql_server_grocerylist
+
+  # front:
+  #  image: front
+  #  ports: ['3000:3000']
+
+volumes:
+   data01:
+      driver: local
+   mongodb_data:
+
+networks:
+  stack: {}
+  mongo-network:
+  redis-network:
