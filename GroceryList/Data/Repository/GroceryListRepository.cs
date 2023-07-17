@@ -37,20 +37,56 @@ namespace GroceryList.Data.Repository
     }
 
     #region Repository:UNITY
-    public async void SaveCategories(List<CategoryModel> list){
-      
+    public async Task<bool> SaveGroceryList(GroceryListModel model)
+    {
+      try {
+        _mongoDbService.DropCategoryCollection();
+        _mongoDbService.DropItemCollection();
+
+
+        foreach(CategoryModel c in model.categories) c.id = ""; //! given that unity app uses category text as id, empty it to be able to add it.
+        await _mongoDbService.InsertManyCategoriesAsync(model.categories.FromModelList());
+
+        List<CategoryModel>? listOfCategories = await GetCategoryList();
+
+        if(listOfCategories != null)
+        {
+          foreach(ItemModel i in model.items)
+          {
+            CategoryModel? dbCategory = listOfCategories.Where(x => x.text == i.myCategory).FirstOrDefault();
+
+            if(dbCategory != null)
+            {
+              //! given that unity app uses category text as myCategory, change to real mongodb id to add item to database.
+              i.myCategory = dbCategory.id;
+              await PutItem(i);
+            }
+          }
+        }
+      } catch {
+        return false;
+      }
+
+      return true;
     }
+    public async Task<GroceryListModel> GetGroceryList()
+    {
+      GroceryListModel model = new GroceryListModel();
 
-    public async Task<List<CategoryModel>> GetCategories(List<CategoryModel> list){
-      return null;
-    }
+      model.categories = await GetCategoryListByMongoDb();
+      model.items = new List<ItemModel>();
 
-    public async void SaveItems(List<ItemModel> list){
+      foreach(CategoryModel c in model.categories)
+      {
+        List<ItemModel> items = await GetItemListInCategory(c.id);
+        foreach(ItemModel i in items) i.myCategory = c.text; //! given that unity app uses category.text as category.id and item.myCategory, need to convert back for now
+        if(items != null) model.items.AddRange(items);
+      }
 
-    }
+      foreach(CategoryModel c in model.categories)//! given that unity app uses category.text as category.id and item.myCategory, need to convert back for now
+        c.id = c.text;
 
-    public async Task<List<ItemModel>> GetItems(List<ItemModel> list){
-      return null;
+      return model;
     }
     #endregion
 
@@ -366,24 +402,6 @@ namespace GroceryList.Data.Repository
       {
         _logger.LogError(ex.Message);
       }
-    }
-    #endregion
-
-    #region MongoDb:UNITY
-    public async void SaveCategoriesByMongoDb(List<CategoryModel> list){
-
-    }
-
-    public async Task<List<CategoryModel>> GetCategoriesByMongoDb(List<CategoryModel> list){
-      return null;
-    }
-
-    public async void SaveItemsByMongoDb(List<ItemModel> list){
-
-    }
-
-    public async Task<List<ItemModel>> GetItemsByMongoDb(List<ItemModel> list){
-      return null;
     }
     #endregion
 

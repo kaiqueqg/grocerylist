@@ -1,1 +1,1 @@
-docker build -t net .
+docker build -t kaiqueqg/grocerylist-api .

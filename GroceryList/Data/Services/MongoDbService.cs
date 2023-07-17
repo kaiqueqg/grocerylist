@@ -16,14 +16,23 @@ namespace GroceryList.Data.Services
 		private readonly string _databaseName;
 		private readonly string _categoryCollectionName;
 		private readonly string _itemCollectionName;
+    ILogger<MongoDbService> _logger;
 
-		public MongoDbService(IConfiguration config)
+		public MongoDbService(IConfiguration config, ILogger<MongoDbService> logger)
 		{
 			_databaseName = "GroceryListDatabase";
 			_categoryCollectionName = "CategoryCollection";
 			_itemCollectionName = "ItemCollection";
+      _logger = logger;
 
 			string connectionString = (string)Environment.GetEnvironmentVariable("MONGO_CONNECTION_STRING");
+
+      if(connectionString == "") 
+      {
+        _logger.LogError("Connection string empty!");
+        _logger.LogError("MONGO_CONNECTION_STRING enviroment variable necessary!");
+      }
+
 			_mongoClient = new MongoClient(connectionString);
 
 			_groceryListDatabase = _mongoClient.GetDatabase(_databaseName);

@@ -1,0 +1,1 @@
+docker build -t kaiqueqg/grocerylist-api-personal .

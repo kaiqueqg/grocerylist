@@ -35,7 +35,9 @@ builder.Host.UseSerilog((context, configuration) =>
 
 //CACHING
 string? redisConnectionString = Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING");
+Console.WriteLine("Redis connection string: " + redisConnectionString);
 string? redisInstanceName = Environment.GetEnvironmentVariable("REDIS_INSTANCE_NAME");
+Console.WriteLine("Redis instance name: " + redisInstanceName);
 builder.Services.AddScoped<ICachingService, CachingService>();
 builder.Services.AddStackExchangeRedisCache(o =>
 {

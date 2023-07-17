@@ -300,6 +300,51 @@ namespace GroceryList.Controllers
 			}
 		}
 
+    [HttpGet]
+		[Authorize]
+		[Route("GetGroceryList")]
+		[ProducesResponseType(typeof(GroceryListModel), StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetGroceryList()
+    {
+      _logger.LogTrace("GetGroceryList");
+
+			try
+			{
+				GroceryListModel result = await _unitOfWork.GroceryListRepository().GetGroceryList();
+
+			  return Ok(result);
+			}
+			catch(Exception ex)
+			{
+				_logger.LogError(ex.Message);
+				return StatusCode(500, ex.Message);
+			}
+    }
+
+    [HttpPut]
+		[Authorize]
+		[Route("SaveGroceryList")]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> SaveGroceryList(GroceryListModel model)
+    {
+      _logger.LogTrace("SaveGroceryList");
+
+			try
+			{
+				bool result = await _unitOfWork.GroceryListRepository().SaveGroceryList(model);
+
+			  if(result) return Ok();
+        else return StatusCode(500, "Something went wrong saving grocery list!");
+			}
+			catch(Exception ex)
+			{
+				_logger.LogError(ex.Message);
+				return StatusCode(500, ex.Message);
+			}
+    }
+
 		// [HttpGet]
 		// [Authorize]
 		// [Route("ChangeDisplayAllCategories")]

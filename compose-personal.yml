@@ -3,14 +3,14 @@ services:
   mongodb:
     image: mongo
     ports: ['27017:27017']
-    volumes: ['mongodb_data_prod:/data/db']
+    volumes: ['mongodb_data_personal:/data/db']
     environment:
      - MONGO_INITDB_ROOT_USERNAME=admin
      - MONGO_INITDB_ROOT_PASSWORD=passw0rd
     networks: ['grocerylist-network']
 
   net:
-     image: kaiqueqg/grocerylist-api
+     image: kaiqueqg/grocerylist-api-personal
      ports:
       - 5000:5000
       - 5001:5001
@@ -20,15 +20,11 @@ services:
       - MONGO_CONNECTION_STRING=mongodb://admin:passw0rd@mongodb:27017/
       - REDIS_CONNECTION_STRING=redis:6379
       - REDIS_INSTANCE_NAME=redisinstance
+      - REDIS_IS_ON=false
      volumes:
       - /myappdata:/app/data
      networks: ['grocerylist-network']
-     depends_on: ['mongodb', 'redis']
-
-  redis:
-    image: redis
-    ports: ['6379:6379']
-    networks: ['grocerylist-network']
+     depends_on: ['mongodb']
 
   front:
     image: kaiqueqg/grocerylist-front
@@ -38,7 +34,7 @@ services:
 volumes:
    data01:
       driver: local
-   mongodb_data_prod:
+   mongodb_data_personal:
 
 networks:
   stack: {}

@@ -58,20 +58,20 @@ services:
     environment:
      - MONGO_INITDB_ROOT_USERNAME=admin
      - MONGO_INITDB_ROOT_PASSWORD=passw0rd
-    networks: ['mongo-network']
+    networks: ['grocerylist-network']
 
   # compass:
   #  image: mongo-express
   #  ports: ['8081:8081']
   #  environment:
   #   - MONGOCLIENT_CONNECT=mongodb://admin:passw0rd@mongodb:27017
-  #  networks: ['mongo-network']
+  #  networks: ['grocerylist-network']
   #  depends_on: ['mongodb']
 
   redis:
     image: redis
     ports: ['6379:6379']
-    networks: ['redis-network']
+    networks: ['grocerylist-network']
 
   redis-commander:
     image: rediscommander/redis-commander:latest
@@ -79,7 +79,7 @@ services:
      - REDIS_HOSTS=redis
     ports: ['8081:8081']
     depends_on: ['redis']
-    networks: ['redis-network']
+    networks: ['grocerylist-network']
 
   # net:
   #   image: net
@@ -106,5 +106,4 @@ volumes:
 
 networks:
   stack: {}
-  mongo-network:
-  redis-network:
+  grocerylist-network:

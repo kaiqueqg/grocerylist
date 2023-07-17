@@ -7,6 +7,7 @@ namespace GroceryList.Data.Caching
 	{
 		private readonly IDistributedCache _cache;
 		private DistributedCacheEntryOptions _options;
+    private ILogger<CachingService> _logger;
 		private bool _isCachingOn;
     private static SemaphoreSlim _cacheLock = new SemaphoreSlim(1);
 
@@ -20,9 +21,21 @@ namespace GroceryList.Data.Caching
       if(_isCachingOn) _cacheLock.Release();
     }
 
-		public CachingService(IDistributedCache cache, IConfiguration config)
+		public CachingService(IDistributedCache cache, IConfiguration config, ILogger<CachingService> logger)
 		{
-			_isCachingOn = config.GetValue<bool>("RedisCache:RedisIsOn");
+      _logger = logger;
+
+      string? REDIS_IS_ON = Environment.GetEnvironmentVariable("REDIS_IS_ON");
+      if(REDIS_IS_ON != null)
+        try {
+          _isCachingOn = Boolean.Parse(REDIS_IS_ON);
+        } catch {
+          _logger.LogWarning("Fail to parse " + REDIS_IS_ON + ". Default caching value will be false.");
+          _isCachingOn = false;
+        }
+      else
+        _isCachingOn = config.GetValue<bool>("RedisCache:RedisIsOn");
+
 			_cache = cache;
 			_options = new DistributedCacheEntryOptions
 			{
