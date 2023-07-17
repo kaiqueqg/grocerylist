@@ -18,32 +18,47 @@ namespace GroceryList.Controllers
 	{
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly IConfiguration _config;
+    private readonly ILogger _logger;
 
-		public UserController(IUnitOfWork unitOfWork, IConfiguration config)
+		public UserController(IUnitOfWork unitOfWork, IConfiguration config, ILogger<UserController> logger)
 		{
 			_unitOfWork = unitOfWork;
 			_config = config;
+      _logger = logger;
 		}
 
 		[HttpPost]
 		[AllowAnonymous]
 		[Route("Login")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		public IActionResult Login(UserModel userModel)
 		{
-			userModel = _unitOfWork.UserRepository().GetUser(userModel.UserName, userModel.Password);
+      _logger.LogTrace("Login");
 
-			if(userModel == null)
+			try
 			{
-				return Unauthorized(userModel);
+				LoginModel login = _unitOfWork.UserRepository().GetUser(userModel.UserName, userModel.Password);
+
+        if(login.user == null)
+        {
+          return Unauthorized(login.errorMessage);
+        }
+        else
+        {
+          LoginModel loginModel = new LoginModel();
+          string token = GenerateJSONWebToken(login.user);
+          loginModel.user = userModel;
+          loginModel.token = token;
+          return Ok(loginModel);
+        }
 			}
-			else
+			catch(Exception ex)
 			{
-				LoginModel loginModel = new LoginModel();
-				string token = GenerateJSONWebToken(userModel);
-				loginModel.user = userModel;
-				loginModel.token = token;
-				return Ok(loginModel);
+				_logger.LogError(ex.Message);
+				return StatusCode(500, ex.Message);
 			}
+			
 		}
 
 		private string GenerateJSONWebToken(UserModel userModel)

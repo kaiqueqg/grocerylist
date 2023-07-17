@@ -12,19 +12,21 @@ namespace GroceryList.Data.Repository
 		{
 			_sqlServerContext = sqlServerContext;
 		}
-		public UserModel? GetUser(string username, string password)
+		public LoginModel? GetUser(string username, string password)
 		{
-			if(username == "test" && password == "test")
-			{
-				return new UserModel() 
-				{ 
-					id = 0,
-					UserName = username,
-					Email = "test@gmail.com",
-					Role = "admin"
-				};
-			}
-			else return null;
+      if(username != "test") return new LoginModel() { user = null, token = "", errorMessage = "Wrong username!" };
+      if(password != "test") return new LoginModel() { user = null, token = "", errorMessage = "Wrong password!" };
+			
+      return new LoginModel() { 
+        user = new UserModel() 
+        { 
+          id = 0,
+          UserName = username,
+          Password = "",
+          Email = "test@gmail.com",
+          Role = "admin"
+        }
+      };
 		}
 	}
 }
