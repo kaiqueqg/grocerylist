@@ -10,7 +10,7 @@ services:
     networks: ['grocerylist-network']
 
   net:
-     image: kaiqueqg/grocerylist-api-personal
+     image: kaiqueqg/grocerylist-api
      ports:
       - 5000:5000
       - 5001:5001

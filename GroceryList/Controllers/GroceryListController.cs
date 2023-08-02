@@ -120,7 +120,14 @@ namespace GroceryList.Controllers
         if(category == null)
         {
           CategoryModel? newCategory = await _unitOfWork.GroceryListRepository().PutCategory(c);
-          return Ok(newCategory);
+
+          if(newCategory != null)
+            return Ok(newCategory);
+          else
+          {
+            _logger.LogError("Error adding category to database.");
+            return StatusCode(500, "Error adding category to database.");
+          }
         }
         else
         {
@@ -146,11 +153,17 @@ namespace GroceryList.Controllers
 
 			try
 			{
-				ItemModel? item = await _unitOfWork.GroceryListRepository().DoesItemAlreadyExist(i);
+				ItemModel? item = await _unitOfWork.GroceryListRepository().DoesItemWithSameNameAlreadyExist(i);
         if(item == null)
         {
           ItemModel? newItem = await _unitOfWork.GroceryListRepository().PutItem(i);
-          return Ok(newItem);
+          if(newItem != null)
+            return Ok(newItem);
+          else
+          {
+            _logger.LogError("Error adding item to database.");
+				    return StatusCode(500, "Error adding item to database.");
+          }
         }
         else
         {
@@ -177,20 +190,20 @@ namespace GroceryList.Controllers
 
 			try
 			{
-				CategoryModel? category = await _unitOfWork.GroceryListRepository().DoesCategoryAlreadyExist(c);
+        CategoryModel? category = await _unitOfWork.GroceryListRepository().DoesCategoryAlreadyExist(c);
 
 				if(category == null)
-				{
-					category = await _unitOfWork.GroceryListRepository().PatchCategory(c);
+        {
+          category = await _unitOfWork.GroceryListRepository().PatchCategory(c);
           if(category != null)
             return Ok(category);
           else
             return NotFound("Category not found!");
-				}
-				else
-				{
-					return Conflict("Category already exist!");
-				}
+        }
+        else
+        {
+          return Conflict("Category already exist!");
+        }
 			}
 			catch(Exception ex)
 			{
@@ -212,22 +225,22 @@ namespace GroceryList.Controllers
 
 			try
 			{
-				ItemModel? item = await _unitOfWork.GroceryListRepository().DoesItemAlreadyExist(i);
+        ItemModel? item = await _unitOfWork.GroceryListRepository().DoesItemWithSameNameAlreadyExist(i);
 
 				if(item == null)
-				{
-					item = await _unitOfWork.GroceryListRepository().PatchItem(i);
-          if(item != null){
-            return Ok(item);
+        {
+          ItemModel? responseItem = await _unitOfWork.GroceryListRepository().PatchItem(i);
+          if(responseItem != null){
+            return Ok(responseItem);
           }
           else{
             return NotFound("Server can't find this item on database.");
           }
-				}
-				else
-				{
-					return Conflict("Item already exist!");
-				}
+        }
+        else
+        {
+          return Conflict("Item already exist!");
+        }
 			}
 			catch(Exception ex)
 			{
@@ -333,9 +346,9 @@ namespace GroceryList.Controllers
 
 			try
 			{
-				bool result = await _unitOfWork.GroceryListRepository().SaveGroceryList(model);
+				GroceryListModel? result = await _unitOfWork.GroceryListRepository().SaveGroceryList(model);
 
-			  if(result) return Ok();
+			  if(result != null) return Ok(result);
         else return StatusCode(500, "Something went wrong saving grocery list!");
 			}
 			catch(Exception ex)

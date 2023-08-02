@@ -68,21 +68,21 @@ services:
   #  networks: ['grocerylist-network']
   #  depends_on: ['mongodb']
 
-  redis:
-    image: redis
-    ports: ['6379:6379']
-    networks: ['grocerylist-network']
+  # redis:
+  #   image: redis
+  #   ports: ['6379:6379']
+  #   networks: ['grocerylist-network']
 
-  redis-commander:
-    image: rediscommander/redis-commander:latest
-    environment:
-     - REDIS_HOSTS=redis
-    ports: ['8081:8081']
-    depends_on: ['redis']
-    networks: ['grocerylist-network']
+  # redis-commander:
+  #   image: rediscommander/redis-commander:latest
+  #   environment:
+  #    - REDIS_HOSTS=redis
+  #   ports: ['8081:8081']
+  #   depends_on: ['redis']
+  #   networks: ['grocerylist-network']
 
   # net:
-  #   image: net
+  #   image: kaiqueqg/grocerylist-api
   #   ports:
   #    - 5000:5000
   #    - 5001:5001
@@ -92,12 +92,12 @@ services:
   #    - SQL_SERVER_URL=sql_server_grocerylist
   #   volumes:
   #    - /myappdata:/app/data
-    #depends_on:
-    # - sql_server_grocerylist
+  #   depends_on:
+  #   - mongodb
 
-  # front:
-  #  image: front
-  #  ports: ['3000:3000']
+  front:
+   image: kaiqueqg/grocerylist-front
+   ports: ['3000:3000']
 
 volumes:
    data01:

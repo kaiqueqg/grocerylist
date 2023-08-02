@@ -37,37 +37,89 @@ namespace GroceryList.Data.Repository
     }
 
     #region Repository:UNITY
-    public async Task<bool> SaveGroceryList(GroceryListModel model)
+    public async Task<GroceryListModel?> SaveGroceryList(GroceryListModel model)
     {
       try {
-        _mongoDbService.DropCategoryCollection();
-        _mongoDbService.DropItemCollection();
-
-
-        foreach(CategoryModel c in model.categories) c.id = ""; //! given that unity app uses category text as id, empty it to be able to add it.
-        await _mongoDbService.InsertManyCategoriesAsync(model.categories.FromModelList());
-
-        List<CategoryModel>? listOfCategories = await GetCategoryList();
-
-        if(listOfCategories != null)
+        //^ CATEGORY
+        List<CategoryModel>? dbCategoryList = await GetCategoryList();
+        foreach(CategoryModel c in model.categories)
         {
-          foreach(ItemModel i in model.items)
+          if(dbCategoryList != null)
           {
-            CategoryModel? dbCategory = listOfCategories.Where(x => x.text == i.myCategory).FirstOrDefault();
-
-            if(dbCategory != null)
+            CategoryModel? existingCategory = dbCategoryList.Where(x => x.text == c.text).FirstOrDefault();
+            if(existingCategory != null)
             {
-              //! given that unity app uses category text as myCategory, change to real mongodb id to add item to database.
-              i.myCategory = dbCategory.id;
-              await PutItem(i);
+              c.id = existingCategory.id;
             }
           }
-        }
-      } catch {
-        return false;
-      }
 
-      return true;
+          if(c.id == "")
+            await _mongoDbService.InsertOneCategoryAsync(c.FromModel());
+          else
+            await _mongoDbService.ReplaceOneCategoryAsync(c.FromModel());
+        }
+
+        //^ ITEM
+        dbCategoryList = await GetCategoryList();
+
+        foreach(ItemModel i in model.items)
+        {
+          if(dbCategoryList != null)
+          {
+            //^ first, there's a category for this item?
+            CategoryModel? existingCategory = dbCategoryList.Where(x => x.id == i.myCategory).FirstOrDefault();
+
+            //^ The myCategory id doesn't return anyone, but it could be because is the text of a category, not the category.id...
+            if(existingCategory == null) 
+              existingCategory = dbCategoryList.Where(x => x.text == i.myCategory).FirstOrDefault();
+            
+            //^ So, did we found a category for this item
+            if(existingCategory != null) 
+            {
+              //^ update current category id from db
+              i.myCategory = existingCategory.id; 
+              List<ItemModel>? itemsInCategory = await GetItemListInCategory(existingCategory.id);
+
+              //^ new item from app
+              if(i.id == "") 
+              {
+                //^ Make sure that there isn't a item with the same text...If there's is, update it.
+                ItemModel? existingSameNameItem = itemsInCategory.Where(x=>x.text == i.text).FirstOrDefault();
+  
+                if(existingSameNameItem == null)
+                {
+                  await PutItemByMongoDb(i);
+                }
+                else
+                {
+                  i.id = existingCategory.id;
+                  await PatchItemByMongoDb(i);
+                }
+              }
+              //^ existing item in db
+              else
+              {
+                await PatchItemByMongoDb(i);
+              }
+            }
+            else{} //! warm someone somehow about an item without category
+          }
+        }
+        
+
+        if(dbCategoryList != null)
+        {
+          List<ItemModel> dbItemsList = new List<ItemModel>();
+          foreach(CategoryModel c in dbCategoryList)
+          {
+            List<ItemModel> possibleItems = await GetItemListInCategory(c.id);
+            if(possibleItems != null) dbItemsList.AddRange(possibleItems);
+          }
+
+          return new GroceryListModel() { categories = dbCategoryList, items = dbItemsList };
+        }
+        else return null;
+      } catch { return null; }
     }
     public async Task<GroceryListModel> GetGroceryList()
     {
@@ -79,12 +131,8 @@ namespace GroceryList.Data.Repository
       foreach(CategoryModel c in model.categories)
       {
         List<ItemModel> items = await GetItemListInCategory(c.id);
-        foreach(ItemModel i in items) i.myCategory = c.text; //! given that unity app uses category.text as category.id and item.myCategory, need to convert back for now
         if(items != null) model.items.AddRange(items);
       }
-
-      foreach(CategoryModel c in model.categories)//! given that unity app uses category.text as category.id and item.myCategory, need to convert back for now
-        c.id = c.text;
 
       return model;
     }
@@ -126,32 +174,11 @@ namespace GroceryList.Data.Repository
 
       try
       {
-        //FIND IN CACHE
-        string? cacheList = await _cache.GetAsync("category:list");
-        if (cacheList != null)
-        {
-          categories = JsonConvert.DeserializeObject<List<CategoryModel>>(cacheList);
-          if (categories != null)
-          {
-            foreach (CategoryModel category in categories)
-            {
-              if (category.text == c.text && category.id != c.id)
-              {
-                return category;
-              }
-            }
-          }
-        }
-
-        //FIND IN DATABASE
         categories = await GetCategoryListByMongoDb();
         foreach (CategoryModel category in categories)
         {
-          if (c.text == category.text && c.id != category.id)
-          {
-            await _cache.SetAsync("category:list", JsonConvert.SerializeObject(categories));
+          if(category.text == c.text && category.id != c.id)
             return category;
-          }
         }
 
         return null;
@@ -220,9 +247,8 @@ namespace GroceryList.Data.Repository
     {
       return await GetItemByMongoDb(id);
     }
-    public async Task<List<ItemModel>> GetItemListInCategory(string categoryId)
+    public async Task<List<ItemModel>?> GetItemListInCategory(string categoryId)
     {
-      
       try
       {
         List<ItemModel>? rtnList = null;
@@ -260,16 +286,18 @@ namespace GroceryList.Data.Repository
         return null;
       }
     }
-    public async Task<ItemModel?> DoesItemAlreadyExist(ItemModel item)
+    public async Task<ItemModel?> DoesItemWithSameNameAlreadyExist(ItemModel item)
     {
       List<ItemModel>? rtnList;
 
       try
       {
-        //FIND IN DATABASE
         rtnList = await GetItemListInCategoryByMongoDb(item.myCategory);
         foreach (ItemModel i in rtnList)
-          if (i.text == item.text && i.id != item.id) return i;
+        {
+          if(i.text == item.text && i.id != item.id)//! same item
+            return i;
+        }
 
         return null;
       }
