@@ -1,0 +1,11 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\GroceryList",
+    "\\GroceryList\\Controllers",
+    "\\GroceryList\\Data",
+    "\\GroceryList\\Data\\Repository"
+  ],
+  "SelectedNode": "\\GroceryList\\Data\\Repository\\GroceryListRepository.cs",
+  "PreviewInSolutionExplorer": false
+}

@@ -41,84 +41,86 @@ namespace GroceryList.Data.Repository
     {
       try {
         //^ CATEGORY
-        List<CategoryModel>? dbCategoryList = await GetCategoryList();
-        foreach(CategoryModel c in model.categories)
+        GroceryListModel groceryList = await GetGroceryList();
+
+        List<CategoryModel>? dbCategoryList = groceryList.categories;
+        if(dbCategoryList != null) //^ there's any data on db?
         {
-          if(dbCategoryList != null)
+          foreach(CategoryModel c in model.categories)
           {
-            CategoryModel? existingCategory = dbCategoryList.Where(x => x.text == c.text).FirstOrDefault();
-            if(existingCategory != null)
+            CategoryModel? dbCategory = null;
+
+            //^ equal id exist?
+            dbCategory = dbCategoryList.Find(x => x.id == c.id);
+            if(dbCategory == null)
             {
-              c.id = existingCategory.id;
+              string oldId = c.id;
+              string newId = "";
+              //^ equal text exist?
+              dbCategory = dbCategoryList.Find(x => x.text == c.text);
+
+              //^ this category is unique, insert it
+              if(dbCategory == null)
+              {
+                c.id = "";
+                CategoryModel? insertedCategory = await PutCategory(c);
+
+                if(insertedCategory != null) c.id = insertedCategory.id;
+              }
+              else //^ there's equal text category, get id, update it
+              {
+                c.id = dbCategory.id;
+                await PatchCategory(c);
+              }
+
+              //^ update all items id that have the old id
+              List<ItemModel>? items = model.items.Where(x => x.myCategory == oldId).ToList();
+              if(items != null)
+              {
+                foreach(ItemModel i in items) i.myCategory = c.id;
+              }
+            }
+            else //^ id already exist in db, just update it
+            {
+              await PatchCategory(c);
             }
           }
 
-          if(c.id == "")
-            await _mongoDbService.InsertOneCategoryAsync(c.FromModel());
-          else
-            await _mongoDbService.ReplaceOneCategoryAsync(c.FromModel());
-        }
-
-        //^ ITEM
-        dbCategoryList = await GetCategoryList();
-
-        foreach(ItemModel i in model.items)
-        {
-          if(dbCategoryList != null)
+          //^ ITEM
+          foreach(ItemModel i in model.items)
           {
-            //^ first, there's a category for this item?
-            CategoryModel? existingCategory = dbCategoryList.Where(x => x.id == i.myCategory).FirstOrDefault();
+            //^ item is already in db?
+            ItemModel? dbItem = groceryList.items.Find(x => x.id == i.id);
 
-            //^ The myCategory id doesn't return anyone, but it could be because is the text of a category, not the category.id...
-            if(existingCategory == null) 
-              existingCategory = dbCategoryList.Where(x => x.text == i.myCategory).FirstOrDefault();
-            
-            //^ So, did we found a category for this item
-            if(existingCategory != null) 
+            if(dbItem == null)
             {
-              //^ update current category id from db
-              i.myCategory = existingCategory.id; 
-              List<ItemModel>? itemsInCategory = await GetItemListInCategory(existingCategory.id);
+              //^ equal text exist in the same category?
+              dbItem = groceryList.items.Find(x => x.text == i.text && x.myCategory == i.myCategory);
 
-              //^ new item from app
-              if(i.id == "") 
+              if(dbItem == null) //^ this item is unique, insert it
               {
-                //^ Make sure that there isn't a item with the same text...If there's is, update it.
-                ItemModel? existingSameNameItem = itemsInCategory.Where(x=>x.text == i.text).FirstOrDefault();
-  
-                if(existingSameNameItem == null)
-                {
-                  await PutItemByMongoDb(i);
-                }
-                else
-                {
-                  i.id = existingCategory.id;
-                  await PatchItemByMongoDb(i);
-                }
+                i.id = "";
+                ItemModel? newItem = await PutItem(i);
+                if(newItem != null) i.id = newItem.id;
               }
-              //^ existing item in db
-              else
+              else //^ there's equal text item, get id, update it
               {
-                await PatchItemByMongoDb(i);
+                i.id = dbItem.id;
+                await PatchItem(i);
               }
             }
-            else{} //! warm someone somehow about an item without category
+            else //^ id already exist in db, just update it
+            {
+              await PatchItem(i);
+            }
           }
-        }
-        
 
-        if(dbCategoryList != null)
+          return await GetGroceryList();
+        }
+        else
         {
-          List<ItemModel> dbItemsList = new List<ItemModel>();
-          foreach(CategoryModel c in dbCategoryList)
-          {
-            List<ItemModel> possibleItems = await GetItemListInCategory(c.id);
-            if(possibleItems != null) dbItemsList.AddRange(possibleItems);
-          }
-
-          return new GroceryListModel() { categories = dbCategoryList, items = dbItemsList };
+          return groceryList;
         }
-        else return null;
       } catch { return null; }
     }
     public async Task<GroceryListModel> GetGroceryList()
