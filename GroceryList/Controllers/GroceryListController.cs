@@ -337,16 +337,16 @@ namespace GroceryList.Controllers
 
     [HttpPut]
 		[Authorize]
-		[Route("SaveGroceryList")]
+		[Route("SyncGroceryList")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> SaveGroceryList(GroceryListModel model)
+    public async Task<IActionResult> SyncGroceryList(GroceryListModel model)
     {
       _logger.LogTrace("SaveGroceryList");
 
 			try
 			{
-				GroceryListModel? result = await _unitOfWork.GroceryListRepository().SaveGroceryList(model);
+				GroceryListModel? result = await _unitOfWork.GroceryListRepository().SyncGroceryList(model);
 
 			  if(result != null) return Ok(result);
         else return StatusCode(500, "Something went wrong saving grocery list!");

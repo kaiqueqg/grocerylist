@@ -37,9 +37,34 @@ namespace GroceryList.Data.Repository
     }
 
     #region Repository:UNITY
-    public async Task<GroceryListModel?> SaveGroceryList(GroceryListModel model)
+    public async Task<GroceryListModel?> SyncGroceryList(GroceryListModel model)
     {
       try {
+        //^ Deleting categories
+        if(model.deletedCategories != null) 
+        {
+          foreach(CategoryModel c in model.deletedCategories)
+          {
+            try
+            {
+              await DeleteCategory(c);
+            }
+            catch{}
+          }
+        }
+        //^ Deleting items
+        if(model.deletedItems != null)
+        {
+          foreach(ItemModel i in model.deletedItems)
+          {
+            try
+            {
+              await DeleteItem(i);
+            }
+            catch { }
+          }
+        }
+
         //^ CATEGORY
         GroceryListModel groceryList = await GetGroceryList();
 

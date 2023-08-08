@@ -9,6 +9,9 @@ namespace GroceryList.Model
       [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
       public string? id { get; set; }
       public string text { get; set; }
+      public int? quantity { get; set; }
+      public string? quantityUnit { get; set; }
+      public string? goodPrice { get; set; }
       public bool? isChecked { get; set; }
 
       [Required(ErrorMessage = "Item required a category id!")]

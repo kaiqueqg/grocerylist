@@ -7,5 +7,8 @@ namespace GroceryList.Model
   {
     public List<CategoryModel> categories { get; set; }
     public List<ItemModel> items { get; set; }
+
+    public List<CategoryModel>? deletedCategories { get; set; }
+    public List<ItemModel>? deletedItems { get; set; }
   }
 }
