@@ -1,16 +1,10 @@
 ﻿using Amazon.Runtime.Internal.Util;
-using DocumentFormat.OpenXml.Office2013.Drawing.ChartStyle;
-using DocumentFormat.OpenXml.Packaging;
 using GroceryList.Data.Caching;
 using GroceryList.Data.Services;
 using GroceryList.Model;
 using GroceryList.Model.MongoDB;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Identity.Client;
-using MongoDB.Bson;
 using MongoDB.Driver;
 using Newtonsoft.Json;
-using System.Runtime.CompilerServices;
 
 namespace GroceryList.Data.Repository
 {

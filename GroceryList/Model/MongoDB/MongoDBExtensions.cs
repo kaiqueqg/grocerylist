@@ -10,8 +10,11 @@ namespace GroceryList.Model.MongoDB
 			{ 
 				Id = i.id, 
 				Text = i.text, 
+				Quantity = i.quantity,
+				QuantityUnit = i.quantityUnit,
+				GoodPrice	= i.goodPrice,
 				IsChecked = i.isChecked, 
-				MyCategory = i.myCategory 
+				MyCategory = i.myCategory
 			}; 
 		}
 		public static ItemModel ToModel(this MongoDBItemModel i)
@@ -20,6 +23,9 @@ namespace GroceryList.Model.MongoDB
 			{
 				id = i.Id,
 				text = i.Text,
+				quantity = i.Quantity,
+				quantityUnit = i.QuantityUnit,
+				goodPrice = i.GoodPrice,
 				isChecked = i.IsChecked,
 				myCategory = i.MyCategory
 			};
