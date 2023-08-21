@@ -1,4 +1,9 @@
-﻿using GroceryList.Model;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using GroceryList.Data.Services;
+using GroceryList.Model;
+using GroceryList.Model.MongoDB;
+using MongoDB.Bson;
+using MongoDB.Driver;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 
@@ -6,27 +11,71 @@ namespace GroceryList.Data.Repository
 {
 	public class UserRepository
 	{
-		SqlServerContext _sqlServerContext;
+    MongoDbService _mongoDbService;
+    ILogger<UserRepository> _logger;
 
-		public UserRepository(SqlServerContext sqlServerContext)
+    public UserRepository(MongoDbService mongoDbService, ILogger<UserRepository> logger)
 		{
-			_sqlServerContext = sqlServerContext;
+      _mongoDbService = mongoDbService;
+      _logger = logger;
 		}
-		public LoginModel? GetUser(string username, string password)
+
+    private UserModel GetTempUser()
+    {
+      return new UserModel()
+      {
+        Id = ObjectId.GenerateNewId().ToString(),
+        UserName = "test",
+        Password = "test",
+        UserPrefs = new UserPrefsModel()
+        {
+          HideQuantity = false,
+          ShouldCreateNewItemWhenCreateNewCategory = false,
+        }
+      };
+    }
+
+		public async Task<LoginModel> UserLogin(string username, string password)
 		{
       if(username != "test") return new LoginModel() { user = null, token = "", errorMessage = "Wrong username!" };
       if(password != "test") return new LoginModel() { user = null, token = "", errorMessage = "Wrong password!" };
-			
-      return new LoginModel() { 
-        user = new UserModel() 
-        { 
-          id = 0,
-          UserName = username,
-          Password = "",
-          Email = "test@gmail.com",
-          Role = "admin"
-        }
-      };
+
+      UserModel? user = (await _mongoDbService.GetUserAsync(Builders<MongoDBUserModel>.Filter.Eq("Username", username)))?.ToModel();
+      if(user == null)
+      {
+        UserModel? newUser = (await _mongoDbService.InsertOneUserAsync(GetTempUser().FromModel()))?.ToModel();
+        return new LoginModel(){ user = newUser };
+      }
+      else{
+        return new LoginModel(){ user = user };
+      }
 		}
-	}
+
+    public async Task<UserModel?> GetUserById(string userId)
+    {
+      return (await _mongoDbService.GetUserAsync(Builders<MongoDBUserModel>.Filter.Eq("Id", userId)))?.ToModel();
+    }
+
+    public async Task<UserPrefsModel?> GetUserPrefs(string userId)
+    {
+      MongoDBUserModel? u = (await _mongoDbService.GetUserAsync(Builders<MongoDBUserModel>.Filter.Eq("Id", userId)));
+
+      return u?.UserPrefs?.ToModel();
+    }
+
+    public async Task<UserPrefsModel?> PatchUserPrefs(string userId, UserPrefsModel userPrefs)
+    {
+      UserModel? user = await GetUserById(userId);
+
+      if(user != null)
+      {
+        user.UserPrefs = userPrefs;
+        ReplaceOneResult result = await _mongoDbService.ReplaceOneUserAsync(user.FromModel());
+
+        return result.ModifiedCount > 0? userPrefs : null;
+      }
+
+      return null;
+    }
+  }
 }

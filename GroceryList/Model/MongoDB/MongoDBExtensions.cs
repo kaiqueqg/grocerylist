@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace GroceryList.Model.MongoDB
 {
@@ -93,5 +94,43 @@ namespace GroceryList.Model.MongoDB
 
 			return rtnList;
 		}
-	}
+
+		public static UserModel ToModel(this MongoDBUserModel u)
+		{
+			return new UserModel()
+			{
+				Id = u.Id,
+				UserName = u.Username,
+				Password = u.Password,
+				UserPrefs = u.UserPrefs.ToModel(),
+			};
+		}
+		public static MongoDBUserModel FromModel(this UserModel u)
+		{
+			return new MongoDBUserModel()
+			{
+				Id = u.Id,
+				Username = u.UserName,
+				Password = u.Password,
+				UserPrefs = u.UserPrefs == null ? null : u.UserPrefs.FromModel(),
+			};
+    }
+
+    public static UserPrefsModel ToModel(this MongoDBUserPrefsModel p)
+    {
+      return new UserPrefsModel()
+      {
+        HideQuantity = p.HideQuantity,
+				ShouldCreateNewItemWhenCreateNewCategory = p.ShouldCreateNewItemWhenCreateNewCategory,
+      };
+    }
+    public static MongoDBUserPrefsModel FromModel(this UserPrefsModel p)
+    {
+      return new MongoDBUserPrefsModel()
+      {
+        HideQuantity = p.HideQuantity,
+        ShouldCreateNewItemWhenCreateNewCategory = p.ShouldCreateNewItemWhenCreateNewCategory,
+      };
+    }
+  }
 }

@@ -13,9 +13,11 @@ namespace GroceryList.Data.Services
 		IMongoDatabase _groceryListDatabase;
 		private readonly IMongoCollection<MongoDBCategoryModel> _categoryCollection;
 		private readonly IMongoCollection<MongoDBItemModel> _itemCollection;
+		private readonly IMongoCollection<MongoDBUserModel> _userCollection;
 		private readonly string _databaseName;
 		private readonly string _categoryCollectionName;
 		private readonly string _itemCollectionName;
+    private readonly string _userCollectionName;
     ILogger<MongoDbService> _logger;
 
 		public MongoDbService(IConfiguration config, ILogger<MongoDbService> logger)
@@ -23,6 +25,7 @@ namespace GroceryList.Data.Services
 			_databaseName = "GroceryListDatabase";
 			_categoryCollectionName = "CategoryCollection";
 			_itemCollectionName = "ItemCollection";
+			_userCollectionName = "UserCollection";
       _logger = logger;
 
 			string connectionString = (string)Environment.GetEnvironmentVariable("MONGO_CONNECTION_STRING");
@@ -38,11 +41,28 @@ namespace GroceryList.Data.Services
 			_groceryListDatabase = _mongoClient.GetDatabase(_databaseName);
 			_categoryCollection = _groceryListDatabase.GetCollection<MongoDBCategoryModel>(_categoryCollectionName);
 			_itemCollection = _groceryListDatabase.GetCollection<MongoDBItemModel>(_itemCollectionName);
+      _userCollection = _groceryListDatabase.GetCollection<MongoDBUserModel>(_userCollectionName);
+    }
+
+    #region User
+		public async Task<MongoDBUserModel?> GetUserAsync(FilterDefinition<MongoDBUserModel> f)
+		{
+			return _userCollection.Find(f, new FindOptions() { MaxTime = TimeSpan.FromMilliseconds(300)}).FirstOrDefault();
+    }
+		public async Task<MongoDBUserModel?> InsertOneUserAsync(MongoDBUserModel newUser)
+		{
+			await _userCollection.InsertOneAsync(newUser);
+			return newUser;
 		}
+		public async Task<ReplaceOneResult> ReplaceOneUserAsync(MongoDBUserModel user)
+		{
+			return await _userCollection.ReplaceOneAsync(x => x.Id == user.Id, user);
+		}
+    #endregion
 
-#region Category
+    #region Category
 
-		public async Task<List<MongoDBCategoryModel>> GetCategoryAsync(FilterDefinition<MongoDBCategoryModel> f)
+    public async Task<List<MongoDBCategoryModel>> GetCategoryAsync(FilterDefinition<MongoDBCategoryModel> f)
 		{
 			return await _categoryCollection.Find(f, new FindOptions(){MaxTime = TimeSpan.FromMilliseconds(300)}).ToListAsync();
 		}

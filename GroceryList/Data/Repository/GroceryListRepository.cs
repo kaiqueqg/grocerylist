@@ -500,18 +500,6 @@ namespace GroceryList.Data.Repository
       return null;
     }
 
-    // private async void ChangeDisplayAllCategoriesByMongoDb(bool value)
-    // {
-    //   List<CategoryModel> list = await GetCategoryList();
-
-    //   foreach (CategoryModel c in list)
-    //   {
-    //     c.isOpen = value;
-    //   }
-
-    //   await _mongoDbService.ReplaceManyCategoriesAsync(list.FromModelList());
-    // }
-
     #endregion
 
     #region MongoDb:Item

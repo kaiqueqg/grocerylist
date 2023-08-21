@@ -32,13 +32,13 @@ namespace GroceryList.Controllers
 		[Route("Login")]
     [ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-		public IActionResult Login(UserModel userModel)
+		public async Task<IActionResult> Login(UserModel userModel)
 		{
       _logger.LogTrace("Login");
 
 			try
 			{
-				LoginModel login = _unitOfWork.UserRepository().GetUser(userModel.UserName, userModel.Password);
+				LoginModel login = await _unitOfWork.UserRepository().UserLogin(userModel.UserName, userModel.Password);
 
         if(login.user == null)
         {
@@ -46,11 +46,8 @@ namespace GroceryList.Controllers
         }
         else
         {
-          LoginModel loginModel = new LoginModel();
-          string token = GenerateJSONWebToken(login.user);
-          loginModel.user = userModel;
-          loginModel.token = token;
-          return Ok(loginModel);
+          login.token = GenerateJSONWebToken(login.user);
+          return Ok(login);
         }
 			}
 			catch(Exception ex)
@@ -61,15 +58,63 @@ namespace GroceryList.Controllers
 			
 		}
 
-		private string GenerateJSONWebToken(UserModel userModel)
+    [HttpGet]
+    [Authorize]
+    [Route("GetUserPrefs")]
+    [ProducesResponseType(typeof(UserPrefsModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+    public async Task<IActionResult> GetUserPrefs(string userId)
+    {
+      _logger.LogTrace("GetItemListInCategory");
+      try
+      {
+        UserPrefsModel? p = await _unitOfWork.UserRepository().GetUserPrefs(userId);
+
+        if(p == null)
+          return StatusCode(503, "The server is currently unable to access the database.");
+
+        return Ok(p);
+      }
+      catch(Exception ex)
+      {
+        _logger.LogError(ex.Message);
+        return StatusCode(500, ex.Message);
+      }
+    }
+
+    [HttpPatch]
+    [Authorize]
+    [Route("PatchUserPrefs")]
+    [ProducesResponseType(typeof(UserPrefsModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+    public async Task<IActionResult> PatchUserPrefs(UserModel user)
+    {
+      _logger.LogTrace("PatchUserPrefs");
+      try
+      {
+        UserPrefsModel? p = await _unitOfWork.UserRepository().PatchUserPrefs(user.Id, user.UserPrefs);
+
+        //if(p == null)
+        //  return StatusCode(503, "The server is currently unable to access the database.");
+
+        return Ok(p);
+      }
+      catch(Exception ex)
+      {
+        _logger.LogError(ex.Message);
+        return StatusCode(500, ex.Message);
+      }
+    }
+
+    private string GenerateJSONWebToken(UserModel userModel)
 		{
 			var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Authentication:Jwt:Key"]));
 			var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 			var claims = new List<Claim>()
 			{
 				new Claim(ClaimTypes.Name, userModel.UserName),
-				new Claim(ClaimTypes.Email, userModel.Email),
-				new Claim(ClaimTypes.Role, userModel.Role)
 			};
 
 			var token = new JwtSecurityToken(

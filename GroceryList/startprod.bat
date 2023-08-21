@@ -1,1 +1,0 @@
-docker-compose -p prod -f compose-prod.yml up
