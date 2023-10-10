@@ -81,19 +81,22 @@ services:
   #   depends_on: ['redis']
   #   networks: ['grocerylist-network']
 
-  # net:
-  #   image: kaiqueqg/grocerylist-api
-  #   ports:
-  #    - 5000:5000
-  #    - 5001:5001
-  #   environment:
-  #    - ASPNETCORE_URLS=http://+:5000
-  #    - ASPNETCORE_HTTP_PORT=https://+:5001
-  #    - SQL_SERVER_URL=sql_server_grocerylist
-  #   volumes:
-  #    - /myappdata:/app/data
-  #   depends_on:
-  #   - mongodb
+  net:
+     image: kaiqueqg/grocerylist-api
+     ports:
+      - 5000:5000
+      - 5001:5001
+     environment:
+      - ASPNETCORE_URLS=http://+:5000
+      - ASPNETCORE_HTTP_PORT=https://+:5001
+      - MONGO_CONNECTION_STRING=mongodb://admin:passw0rd@mongodb:27017/
+      - REDIS_CONNECTION_STRING=redis:6379
+      - REDIS_INSTANCE_NAME=redisinstance
+      - REDIS_IS_ON=false
+     volumes:
+      - /myappdata:/app/data
+     networks: ['grocerylist-network']
+     depends_on: ['mongodb']
 
   front:
    image: kaiqueqg/grocerylist-front

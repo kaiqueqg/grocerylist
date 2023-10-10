@@ -198,7 +198,7 @@ namespace GroceryList.Controllers
           if(category != null)
             return Ok(category);
           else
-            return NotFound("Category not found!");
+            return NotFound("Category not updated!");
         }
         else
         {
@@ -234,7 +234,7 @@ namespace GroceryList.Controllers
             return Ok(responseItem);
           }
           else{
-            return NotFound("Server can't find this item on database.");
+            return NotFound("Item not updated.");
           }
         }
         else

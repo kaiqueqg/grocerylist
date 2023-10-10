@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authentication;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using DocumentFormat.OpenXml.InkML;
 
 namespace GroceryList.Controllers
 {
@@ -47,6 +48,7 @@ namespace GroceryList.Controllers
         else
         {
           login.token = GenerateJSONWebToken(login.user);
+          _logger.LogInformation(login.token);
           return Ok(login);
         }
 			}
@@ -96,9 +98,6 @@ namespace GroceryList.Controllers
       {
         UserPrefsModel? p = await _unitOfWork.UserRepository().PatchUserPrefs(user.Id, user.UserPrefs);
 
-        //if(p == null)
-        //  return StatusCode(503, "The server is currently unable to access the database.");
-
         return Ok(p);
       }
       catch(Exception ex)
@@ -111,17 +110,20 @@ namespace GroceryList.Controllers
     private string GenerateJSONWebToken(UserModel userModel)
 		{
 			var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Authentication:Jwt:Key"]));
-			var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+      var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 			var claims = new List<Claim>()
 			{
 				new Claim(ClaimTypes.Name, userModel.UserName),
-			};
+        new Claim(ClaimTypes.Email, userModel.UserName),
+      };
 
-			var token = new JwtSecurityToken(
+      var token = new JwtSecurityToken(
 			  issuer: _config["Authentication:Jwt:Issuer"],
+        audience: _config["Authentication:Jwt:Audience"],
 			  claims: claims,
-			  expires: DateTime.Now.AddDays(30),
-			  signingCredentials: credentials); ;
+        notBefore: DateTime.Now,
+        expires: DateTime.UtcNow.AddDays(30),
+        signingCredentials: credentials); ;
 
 			return new JwtSecurityTokenHandler().WriteToken(token);
 		}
