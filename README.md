@@ -2,8 +2,7 @@
 
 #### A personal use project and knowledge showcase, using Docker, C# net core, ReactJs, Scss, MongoDb and Redis.
 
-
-###### To run
+### To run
 
 Use this docker-compose: [compose-prod.yml](https://github.com/kaiqueqg/grocerylist-api/blob/main/compose-prod.yml)
 
@@ -11,7 +10,7 @@ Use this docker-compose: [compose-prod.yml](https://github.com/kaiqueqg/groceryl
 - username: **test**
 - password: **test**
 
-###### To use on cellphone 
+### To use on cellphone 
 
 It was only tested **for now**, on my device with a screen of 1080 x 2280 pixels, 19:9 ratio (~438 ppi density).
 
