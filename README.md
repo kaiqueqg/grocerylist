@@ -11,7 +11,7 @@ Use this docker-compose: [compose-prod.yml](https://github.com/kaiqueqg/groceryl
 - username: **test**
 - password: **test**
 
-###### To use of cellphone
+###### To use on cellphone 
 
 It was only tested **for now**, on my device with a screen of 1080 x 2280 pixels, 19:9 ratio (~438 ppi density).
 
